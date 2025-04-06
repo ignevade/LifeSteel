@@ -1,0 +1,52 @@
+name: LifeSteel
+version: 1.0
+main: me.evade.LifeSteel.LifeSteel
+api-version: 1.21
+author: Evade
+description: Lifesteal plugin designed to make Lifesteal SMP servers easily managable
+
+commands:
+  setmaxhealth:
+    description: Set a player's maximum health
+    usage: /setmaxhealth <player> <health>
+    permission: lifesteel.sethealth
+
+  giverevivebeacon:
+    description: Give a player a Revive Beacon
+    usage: /giverevivebeacon <player> [amount]
+    permission: lifesteel.giverevivebeacon
+
+  giveheart:
+    description: Give a player a Heart item
+    usage: /giveheart <player> [amount]
+    permission: lifesteel.giveheart
+
+  reviveplayer:
+    description: Revive a banned player
+    usage: /reviveplayer <player>
+    permission: lifesteel.reviveplayer
+
+  revivebeacon:
+    description: Shows the recipe for crafting a Revive Beacon
+    usage: /revivebeacon
+
+  heart:
+    description: Shows the recipe for crafting a Heart
+    usage: /heart
+permissions:
+  lifesteel.sethealth:
+    description: Allows setting a player's maximum health
+    default: op
+
+  lifesteel.giverevivebeacon:
+    description: Allows giving Revive Beacons to players
+    default: op
+
+  lifesteel.giveheart:
+    description: Allows giving Heart items to players
+    default: op
+
+  lifesteel.reviveplayer:
+    description: Allows reviving banned players
+    default: op
+
