@@ -12,60 +12,45 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 public class ReviveBeaconListener implements Listener {
     private final LifeSteel plugin;
     private final BannedPlayersManager bannedPlayersManager;
     private final Map<UUID, Boolean> waitingForInput;
     private final Map<UUID, ItemStack> beaconStorage;
-
     public ReviveBeaconListener(LifeSteel plugin, BannedPlayersManager bannedPlayersManager) {
         this.plugin = plugin;
         this.bannedPlayersManager = bannedPlayersManager;
         this.waitingForInput = new HashMap<>();
         this.beaconStorage = new HashMap<>();
     }
-
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
-
         if (item == null || !isReviveBeacon(item)) {
             return;
         }
-
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            // Check if the player is already selecting a name
             if (waitingForInput.containsKey(player.getUniqueId())) {
                 player.sendMessage(ChatColor.RED + "You're already in the process of reviving a player!");
                 event.setCancelled(true);
                 return;
             }
-
-            // Check if any player is currently selecting
             if (!waitingForInput.isEmpty()) {
                 player.sendMessage(ChatColor.RED + "Someone else is currently using a Revive Beacon. Please wait until they finish.");
                 event.setCancelled(true);
                 return;
             }
-
-            // Create a single beacon item copy (just 1, not the entire stack)
             ItemStack beaconCopy = item.clone();
-            beaconCopy.setAmount(1);  // Ensure we only store ONE beacon regardless of stack size
-
-            // Take away ONE beacon immediately
+            beaconCopy.setAmount(1);
             if (item.getAmount() > 1) {
                 item.setAmount(item.getAmount() - 1);
             } else {
                 player.getInventory().setItemInMainHand(null);
             }
-
-            // Store the player's UUID and beacon copy for potential cancellation
             waitingForInput.put(player.getUniqueId(), true);
             beaconStorage.put(player.getUniqueId(), beaconCopy);
 
@@ -75,7 +60,6 @@ public class ReviveBeaconListener implements Listener {
             event.setCancelled(true);
         }
     }
-
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         final Player player = event.getPlayer();
@@ -83,14 +67,10 @@ public class ReviveBeaconListener implements Listener {
         if (!waitingForInput.containsKey(player.getUniqueId())) {
             return;
         }
-
         event.setCancelled(true);
         waitingForInput.remove(player.getUniqueId());
-
         final String targetName = event.getMessage();
         final ItemStack beaconItem = beaconStorage.remove(player.getUniqueId());
-
-        // Run the item processing on the main thread
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -111,7 +91,6 @@ public class ReviveBeaconListener implements Listener {
                     }
                     return;
                 }
-
                 UUID targetUUID = bannedPlayersManager.getUUIDFromName(targetName);
 
                 if (targetUUID == null) {
@@ -137,17 +116,14 @@ public class ReviveBeaconListener implements Listener {
             }
         }.runTask(plugin); // This runs the code in the main server thread
     }
-
     private boolean isReviveBeacon(ItemStack item) {
         if (item == null || item.getType() != Material.BEACON) {
             return false;
         }
-
         ItemMeta meta = item.getItemMeta();
         if (meta == null || !meta.hasDisplayName()) {
             return false;
         }
-
         return ChatColor.stripColor(meta.getDisplayName()).equalsIgnoreCase("Revive Beacon");
     }
 }
